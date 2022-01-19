@@ -53,3 +53,9 @@ curl -X GET -H 'Content-Type: application/json;charset=UTF-8' http://localhost:8
 ```bash
 curl -X DELETE -H 'Content-Type: application/json;charset=UTF-8' http://localhost:8080/sample/foo/bar -d '{"resource": "a_resource_key"}'
 ```
+
+### Delete All
+
+```bash
+curl -X DELETE -H 'Content-Type: application/json;charset=UTF-8' http://localhost:8080/sample/foo/bar
+```
