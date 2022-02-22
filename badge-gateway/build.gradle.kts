@@ -2,6 +2,7 @@ apply(plugin = "org.springframework.boot")
 
 dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    api(project(":badge-provider"))
     implementation("org.springframework.boot:spring-boot-starter-web")
 }
 
