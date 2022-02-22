@@ -1,6 +1,7 @@
 plugins {
     id("org.springframework.boot") version "2.6.3" apply false
     kotlin("jvm") version "1.5.10"
+    kotlin("plugin.spring") version "1.6.10" apply false
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
@@ -27,10 +28,16 @@ val commonsTextVersion = "1.9"
 subprojects {
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     if (project.name.endsWith("-gateway") || project.name.endsWith("-scheduler")) {
         apply(plugin = "org.gradle.java")
     } else {
         apply(plugin = "org.gradle.java-library")
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     dependencyManagement {
