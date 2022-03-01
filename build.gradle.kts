@@ -15,15 +15,7 @@ allprojects {
 group = "net.sunshow.badge"
 version = "1.0-SNAPSHOT"
 
-val lombokVersion = "1.18.20"
-val slf4jVersion = "1.7.31"
-val guavaVersion = "30.1.1-jre"
-val commonsLang3Version = "3.12.0"
-val commonsBeanUtilsVersion = "1.9.4"
-val commonsIOVersion = "2.11.0"
-val dozerVersion = "6.5.0"
-val janinoVersion = "3.1.6"
-val commonsTextVersion = "1.9"
+val slf4jVersion = "1.7.36"
 
 subprojects {
     apply(plugin = "io.spring.dependency-management")
@@ -51,18 +43,7 @@ subprojects {
         }
 
         dependencies {
-            dependency("org.projectlombok:lombok:${lombokVersion}")
-
             dependency("org.slf4j:slf4j-api:${slf4jVersion}")
-
-            dependency("com.google.guava:guava:${guavaVersion}")
-            dependency("commons-beanutils:commons-beanutils:${commonsBeanUtilsVersion}")
-            dependency("org.apache.commons:commons-lang3:${commonsLang3Version}")
-            dependency("com.github.dozermapper:dozer-core:${dozerVersion}")
-            dependency("org.codehaus.janino:janino:${janinoVersion}")
-
-            dependency("org.apache.commons:commons-text:${commonsTextVersion}")
-            dependency("commons-io:commons-io:${commonsIOVersion}")
         }
     }
 
@@ -70,10 +51,6 @@ subprojects {
         implementation(kotlin("stdlib"))
         testImplementation("org.junit.jupiter:junit-jupiter-api")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-        testAnnotationProcessor("org.projectlombok:lombok")
-        testCompileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
-        compileOnly("org.projectlombok:lombok")
         implementation("org.slf4j:slf4j-api")
     }
 
