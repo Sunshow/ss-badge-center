@@ -4,7 +4,7 @@ A badge management center.
 
 一个基于树形层级的角标（小红点）管理系统。
 
-基于 Redis ZSet 实现。
+基于 Redis 实现。
 
 ## API
 
