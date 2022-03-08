@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: ss-badge-center
+  data:
+    redis:
+      repositories:
+        enabled: false
+  messages:
+    encoding: UTF-8
+  profiles:
+    active: local
+    include: common
+logging:
+  level:
+    root: info
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+  error:
+    path: /error
