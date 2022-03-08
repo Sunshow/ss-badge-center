@@ -32,4 +32,9 @@ class TestRedisConfig {
         return RedisScript.of(ClassPathResource("scripts/test.lua"), String::class.java)
     }
 
+    @Bean
+    fun testConcurrencyScript(): RedisScript<List<*>> {
+        return RedisScript.of(ClassPathResource("scripts/test_concurrency.lua"), List::class.java)
+    }
+
 }
