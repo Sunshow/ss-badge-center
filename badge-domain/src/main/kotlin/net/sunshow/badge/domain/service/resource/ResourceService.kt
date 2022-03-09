@@ -6,6 +6,8 @@ interface ResourceService {
 
     fun deleteUnreadResource(store: String, path: String, resource: String)
 
+    fun deleteAllUnreadResource(store: String, path: String)
+
     fun countUnreadResource(store: String, path: String): Int
 
 }

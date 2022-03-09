@@ -34,6 +34,13 @@ class ResourceServiceImpl : ResourceService {
         RedisScript.of(deleteUnreadResourceScriptFile, Void::class.java)
     }
 
+    @Value("classpath:scripts/delete_all_unread_resource.lua")
+    private lateinit var deleteAllUnreadResourceScriptFile: Resource
+
+    private val deleteAllUnreadResourceScript: RedisScript<Void> by lazy {
+        RedisScript.of(deleteAllUnreadResourceScriptFile, Void::class.java)
+    }
+
     private val hashOperations: HashOperations<String, String, String> by lazy {
         stringRedisTemplate.opsForHash()
     }
@@ -77,6 +84,22 @@ class ResourceServiceImpl : ResourceService {
         argList.add("/")
 
         stringRedisTemplate.execute(deleteUnreadResourceScript, keyList, *argList.toTypedArray())
+    }
+
+    override fun deleteAllUnreadResource(store: String, path: String) {
+        val storeKey = redisKeyManager.getStoreKey(store)
+
+        val keyList = listOf(storeKey, redisKeyManager.getNodeKey(store, path))
+
+        val argList = mutableListOf<String>()
+        var reducePath = path
+        do {
+            argList.add(reducePath)
+            reducePath = reducePath.substringBeforeLast("/")
+        } while (reducePath.isNotEmpty())
+        argList.add("/")
+
+        stringRedisTemplate.execute(deleteAllUnreadResourceScript, keyList, *argList.toTypedArray())
     }
 
     override fun countUnreadResource(store: String, path: String): Int {

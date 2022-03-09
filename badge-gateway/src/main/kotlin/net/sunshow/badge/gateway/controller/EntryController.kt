@@ -2,6 +2,7 @@ package net.sunshow.badge.gateway.controller
 
 import net.sunshow.badge.domain.usecase.resource.CountUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.resource.CreateUnreadResourceUseCase
+import net.sunshow.badge.domain.usecase.resource.DeleteAllUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.resource.DeleteUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.store.CreateStoreUseCase
 import net.sunshow.badge.gateway.request.resource.CreateUnreadResourceRequest
@@ -17,6 +18,7 @@ class EntryController(
     private val createUnreadResourceUseCase: CreateUnreadResourceUseCase,
     private val countUnreadResourceUseCase: CountUnreadResourceUseCase,
     private val deleteUnreadResourceUseCase: DeleteUnreadResourceUseCase,
+    private val deleteAllUnreadResourceUseCase: DeleteAllUnreadResourceUseCase,
 ) {
 
     @PutMapping("/")
@@ -60,17 +62,26 @@ class EntryController(
     @DeleteMapping("/{store}/**")
     fun deleteUnreadResource(
         @PathVariable store: String,
-        @RequestBody body: DeleteUnreadResourceRequest,
+        @RequestBody(required = false) body: DeleteUnreadResourceRequest?,
         request: HttpServletRequest
     ) {
         val uri = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
         val path = uri.substringAfter("/$store")
-        deleteUnreadResourceUseCase.execute(
-            DeleteUnreadResourceUseCase.InputData(
-                store = store,
-                path = path,
-                resource = body.resource,
+        if (body != null) {
+            deleteUnreadResourceUseCase.execute(
+                DeleteUnreadResourceUseCase.InputData(
+                    store = store,
+                    path = path,
+                    resource = body.resource,
+                )
             )
-        )
+        } else {
+            deleteAllUnreadResourceUseCase.execute(
+                DeleteAllUnreadResourceUseCase.InputData(
+                    store = store,
+                    path = path,
+                )
+            )
+        }
     }
 }
