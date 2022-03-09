@@ -1,4 +1,4 @@
-package net.sunshow.badge.gateway.request
+package net.sunshow.badge.gateway.request.store
 
 class CreateStoreRequest {
 

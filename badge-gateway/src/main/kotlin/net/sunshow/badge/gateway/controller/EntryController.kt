@@ -1,14 +1,17 @@
 package net.sunshow.badge.gateway.controller
 
+import net.sunshow.badge.domain.usecase.resource.CreateUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.store.CreateStoreUseCase
-import net.sunshow.badge.gateway.request.CreateStoreRequest
+import net.sunshow.badge.gateway.request.resource.CreateUnreadResourceRequest
+import net.sunshow.badge.gateway.request.store.CreateStoreRequest
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.HandlerMapping
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 class EntryController(
-    private val createStoreUseCase: CreateStoreUseCase
+    private val createStoreUseCase: CreateStoreUseCase,
+    private val createUnreadResourceUseCase: CreateUnreadResourceUseCase,
 ) {
 
     @PutMapping("/")
@@ -16,6 +19,23 @@ class EntryController(
         createStoreUseCase.execute(
             CreateStoreUseCase.InputData(
                 name = body.name
+            )
+        )
+    }
+
+    @PutMapping("/{store}/**")
+    fun createResource(
+        @PathVariable store: String,
+        @RequestBody body: CreateUnreadResourceRequest,
+        request: HttpServletRequest
+    ) {
+        val uri = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = uri.substringAfter("/$store")
+        createUnreadResourceUseCase.execute(
+            CreateUnreadResourceUseCase.InputData(
+                store = store,
+                path = path,
+                resource = body.resource,
             )
         )
     }
