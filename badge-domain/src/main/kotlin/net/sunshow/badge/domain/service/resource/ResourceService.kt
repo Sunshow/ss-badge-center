@@ -4,4 +4,6 @@ interface ResourceService {
 
     fun createUnreadResource(store: String, path: String, resource: String)
 
+    fun countUnreadResource(store: String, path: String): Int
+
 }

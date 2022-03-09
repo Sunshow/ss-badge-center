@@ -1,5 +1,6 @@
 package net.sunshow.badge.gateway.controller
 
+import net.sunshow.badge.domain.usecase.resource.CountUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.resource.CreateUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.store.CreateStoreUseCase
 import net.sunshow.badge.gateway.request.resource.CreateUnreadResourceRequest
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 class EntryController(
     private val createStoreUseCase: CreateStoreUseCase,
     private val createUnreadResourceUseCase: CreateUnreadResourceUseCase,
+    private val countUnreadResourceUseCase: CountUnreadResourceUseCase,
 ) {
 
     @PutMapping("/")
@@ -24,7 +26,7 @@ class EntryController(
     }
 
     @PutMapping("/{store}/**")
-    fun createResource(
+    fun createUnreadResource(
         @PathVariable store: String,
         @RequestBody body: CreateUnreadResourceRequest,
         request: HttpServletRequest
@@ -36,6 +38,18 @@ class EntryController(
                 store = store,
                 path = path,
                 resource = body.resource,
+            )
+        )
+    }
+
+    @GetMapping("/{store}/**")
+    fun getUnreadResource(@PathVariable store: String, request: HttpServletRequest): Any {
+        val uri = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = uri.substringAfter("/$store")
+        return countUnreadResourceUseCase.execute(
+            CountUnreadResourceUseCase.InputData(
+                store = store,
+                path = path,
             )
         )
     }

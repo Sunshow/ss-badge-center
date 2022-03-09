@@ -55,4 +55,10 @@ class ResourceServiceImpl : ResourceService {
 
         stringRedisTemplate.execute(createUnreadResourceScript, keyList, *argList.toTypedArray())
     }
+
+    override fun countUnreadResource(store: String, path: String): Int {
+        val storeKey = redisKeyManager.getStoreKey(store)
+
+        return hashOperations.get(storeKey, path)?.toIntOrNull() ?: 0
+    }
 }
