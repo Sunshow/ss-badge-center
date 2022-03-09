@@ -68,4 +68,9 @@ class StoreServiceImpl : StoreService {
             throw RuntimeException("Delete store error: $result")
         }
     }
+
+    override fun listStore(): List<String> {
+        val allStoreKey = redisKeyManager.getAllStoreKey()
+        return setOperations.members(allStoreKey)?.toList() ?: emptyList()
+    }
 }

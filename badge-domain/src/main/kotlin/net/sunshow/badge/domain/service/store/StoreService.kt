@@ -5,5 +5,6 @@ interface StoreService {
     fun createStoreByName(name: String)
 
     fun deleteStoreByName(name: String)
-    
+
+    fun listStore(): List<String>
 }

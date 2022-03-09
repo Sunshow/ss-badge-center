@@ -6,6 +6,7 @@ import net.sunshow.badge.domain.usecase.resource.DeleteAllUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.resource.DeleteUnreadResourceUseCase
 import net.sunshow.badge.domain.usecase.store.CreateStoreUseCase
 import net.sunshow.badge.domain.usecase.store.DeleteStoreUseCase
+import net.sunshow.badge.domain.usecase.store.ListStoreUseCase
 import net.sunshow.badge.gateway.request.resource.CreateUnreadResourceRequest
 import net.sunshow.badge.gateway.request.resource.DeleteUnreadResourceRequest
 import net.sunshow.badge.gateway.request.store.CreateStoreRequest
@@ -17,11 +18,19 @@ import javax.servlet.http.HttpServletRequest
 class EntryController(
     private val createStoreUseCase: CreateStoreUseCase,
     private val deleteStoreUseCase: DeleteStoreUseCase,
+    private val listStoreUseCase: ListStoreUseCase,
     private val createUnreadResourceUseCase: CreateUnreadResourceUseCase,
     private val countUnreadResourceUseCase: CountUnreadResourceUseCase,
     private val deleteUnreadResourceUseCase: DeleteUnreadResourceUseCase,
     private val deleteAllUnreadResourceUseCase: DeleteAllUnreadResourceUseCase,
 ) {
+
+    @GetMapping("/")
+    fun listStore(): Any {
+        return listStoreUseCase.execute(
+            ListStoreUseCase.InputData()
+        )
+    }
 
     @PutMapping("/")
     fun createStore(@RequestBody body: CreateStoreRequest) {
