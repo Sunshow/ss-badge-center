@@ -35,6 +35,13 @@ class StoreServiceImpl : StoreService {
         RedisScript.of(createStoreScriptFile, Long::class.java)
     }
 
+    @Value("classpath:scripts/delete_store.lua")
+    private lateinit var deleteStoreScriptFile: Resource
+
+    private val deleteStoreScript: RedisScript<Long> by lazy {
+        RedisScript.of(deleteStoreScriptFile, Long::class.java)
+    }
+
     override fun createStoreByName(name: String) {
         val storeKey = redisKeyManager.getStoreKey(name)
         val manageKey = redisKeyManager.getAllStoreKey()
@@ -44,4 +51,21 @@ class StoreServiceImpl : StoreService {
         stringRedisTemplate.execute(createStoreScript, keyList, name)
     }
 
+    override fun deleteStoreByName(name: String) {
+        val storeKey = redisKeyManager.getStoreKey(name)
+        val allStoreKey = redisKeyManager.getAllStoreKey()
+
+        val keyList = mutableListOf(storeKey, allStoreKey)
+
+        // get all path
+        val entries = hashOperations.entries(storeKey)
+        entries.keys.forEach {
+            keyList.add(redisKeyManager.getNodeKey(name, it))
+        }
+
+        val result = stringRedisTemplate.execute(deleteStoreScript, keyList, name)
+        if (result < 0) {
+            throw RuntimeException("Delete store error: $result")
+        }
+    }
 }
