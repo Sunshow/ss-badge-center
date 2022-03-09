@@ -23,22 +23,22 @@ class ResourceServiceImpl : ResourceService {
     @Value("classpath:scripts/create_unread_resource.lua")
     private lateinit var createUnreadResourceScriptFile: Resource
 
-    private val createUnreadResourceScript: RedisScript<Void> by lazy {
-        RedisScript.of(createUnreadResourceScriptFile, Void::class.java)
+    private val createUnreadResourceScript: RedisScript<Long> by lazy {
+        RedisScript.of(createUnreadResourceScriptFile, Long::class.java)
     }
 
     @Value("classpath:scripts/delete_unread_resource.lua")
     private lateinit var deleteUnreadResourceScriptFile: Resource
 
-    private val deleteUnreadResourceScript: RedisScript<Void> by lazy {
-        RedisScript.of(deleteUnreadResourceScriptFile, Void::class.java)
+    private val deleteUnreadResourceScript: RedisScript<Long> by lazy {
+        RedisScript.of(deleteUnreadResourceScriptFile, Long::class.java)
     }
 
     @Value("classpath:scripts/delete_all_unread_resource.lua")
     private lateinit var deleteAllUnreadResourceScriptFile: Resource
 
-    private val deleteAllUnreadResourceScript: RedisScript<Void> by lazy {
-        RedisScript.of(deleteAllUnreadResourceScriptFile, Void::class.java)
+    private val deleteAllUnreadResourceScript: RedisScript<Long> by lazy {
+        RedisScript.of(deleteAllUnreadResourceScriptFile, Long::class.java)
     }
 
     private val hashOperations: HashOperations<String, String, String> by lazy {
@@ -67,7 +67,10 @@ class ResourceServiceImpl : ResourceService {
         } while (reducePath.isNotEmpty())
         argList.add("/")
 
-        stringRedisTemplate.execute(createUnreadResourceScript, keyList, *argList.toTypedArray())
+        val result = stringRedisTemplate.execute(createUnreadResourceScript, keyList, *argList.toTypedArray())
+        if (result < 0) {
+            throw RuntimeException("Create unread resource error: $result")
+        }
     }
 
     override fun deleteUnreadResource(store: String, path: String, resource: String) {
@@ -83,7 +86,10 @@ class ResourceServiceImpl : ResourceService {
         } while (reducePath.isNotEmpty())
         argList.add("/")
 
-        stringRedisTemplate.execute(deleteUnreadResourceScript, keyList, *argList.toTypedArray())
+        val result = stringRedisTemplate.execute(deleteUnreadResourceScript, keyList, *argList.toTypedArray())
+        if (result < 0) {
+            throw RuntimeException("Delete unread resource error: $result")
+        }
     }
 
     override fun deleteAllUnreadResource(store: String, path: String) {
@@ -99,7 +105,10 @@ class ResourceServiceImpl : ResourceService {
         } while (reducePath.isNotEmpty())
         argList.add("/")
 
-        stringRedisTemplate.execute(deleteAllUnreadResourceScript, keyList, *argList.toTypedArray())
+        val result = stringRedisTemplate.execute(deleteAllUnreadResourceScript, keyList, *argList.toTypedArray())
+        if (result < 0) {
+            throw RuntimeException("Delete all unread resource error: $result")
+        }
     }
 
     override fun countUnreadResource(store: String, path: String): Int {

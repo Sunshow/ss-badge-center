@@ -2,11 +2,17 @@ local storeKey = KEYS[1]
 local nodeKey = KEYS[2]
 local resource = ARGV[1]
 
+local hasStore = redis.call('exists', storeKey)
+if (hasStore == 0)
+then
+    return -1
+end
+
 -- 1. remove resource from path set
 local affected = redis.call('srem', nodeKey, resource)
 if (affected == 0)
 then
-    return
+    return 0
 end
 
 -- 2. get path set count (resource count)
@@ -36,4 +42,4 @@ for i = 3, #ARGV do
 end
 redis.call(unpack(hmset))
 
-return
+return 1

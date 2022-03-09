@@ -9,6 +9,10 @@ class RedisKeyManager {
     @Value("\${deploy.redis-key-prefix:}")
     lateinit var redisKeyPrefix: String
 
+    fun getAllStoreKey(): String {
+        return "${redisKeyPrefix}store"
+    }
+
     fun getStoreKey(name: String): String {
         return "${redisKeyPrefix}store_$name"
     }

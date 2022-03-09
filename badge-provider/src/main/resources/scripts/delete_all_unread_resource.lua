@@ -1,6 +1,12 @@
 local storeKey = KEYS[1]
 local nodeKey = KEYS[2]
 
+local hasStore = redis.call('exists', storeKey)
+if (hasStore == 0)
+then
+    return -1
+end
+
 -- 1. get path set count (resource count)
 local resourceCount = redis.call('scard', nodeKey)
 
@@ -8,12 +14,12 @@ local resourceCount = redis.call('scard', nodeKey)
 local affected = redis.call('del', nodeKey)
 if (affected == 0)
 then
-    return
+    return 0
 end
 
 if (resourceCount == 0)
 then
-    return
+    return 0
 end
 
 -- 3. maintain current path and ancestor nodes count
@@ -34,4 +40,4 @@ for i = 1, #ARGV do
 end
 redis.call(unpack(hmset))
 
-return
+return 1
