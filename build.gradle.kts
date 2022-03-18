@@ -12,9 +12,6 @@ allprojects {
     }
 }
 
-group = "net.sunshow.badge"
-version = "1.0-SNAPSHOT"
-
 val slf4jVersion = "1.7.36"
 
 subprojects {
@@ -26,6 +23,9 @@ subprojects {
     } else {
         apply(plugin = "org.gradle.java-library")
     }
+
+    group = "net.sunshow.badge"
+    version = "1.0-SNAPSHOT"
 
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
