@@ -9,6 +9,6 @@ dependencies {
     implementation("io.lettuce:lettuce-core")
 }
 
-tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     launchScript()
 }
