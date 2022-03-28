@@ -6,8 +6,6 @@ spring:
     port: 6379
     password:
     database: 15
-  profiles:
-    active: prod
 logging:
   level:
     root: info
