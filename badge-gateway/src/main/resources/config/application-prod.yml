@@ -1,10 +1,17 @@
 server:
-  port: 8080
+  port: 8180
 spring:
   redis:
     host: 127.0.0.1
     port: 6379
     password:
-    database: 0
+    database: 15
+  profiles:
+    active: prod
+logging:
+  level:
+    root: info
+  file:
+    name: /opt/deploy/ss-badge-center/logs/${spring.application.name}.log
 deploy:
   redis-key-prefix: badge_
