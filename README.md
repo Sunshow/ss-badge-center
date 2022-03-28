@@ -41,6 +41,8 @@ curl -X GET -H 'Content-Type: application/json;charset=UTF-8' http://localhost:8
 
 # 注意末尾的斜杠, 表示路径顶层节点
 curl -X GET -H 'Content-Type: application/json;charset=UTF-8' http://localhost:8080/sample/
+
+# ResponseText: {"count":0}
 ```
 
 ### Delete Unread
