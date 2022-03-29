@@ -27,6 +27,14 @@ class ResourceServiceImpl : ResourceService {
         RedisScript.of(createUnreadResourceScriptFile, Long::class.java)
     }
 
+    @Value("classpath:scripts/create_unread_resource_batch.lua")
+    private lateinit var batchCreateUnreadResourceScriptFile: Resource
+
+    private val batchCreateUnreadResourceScript: RedisScript<Long> by lazy {
+        RedisScript.of(batchCreateUnreadResourceScriptFile, Long::class.java)
+    }
+
+
     @Value("classpath:scripts/delete_unread_resource.lua")
     private lateinit var deleteUnreadResourceScriptFile: Resource
 
@@ -68,6 +76,38 @@ class ResourceServiceImpl : ResourceService {
         argList.add("/")
 
         val result = stringRedisTemplate.execute(createUnreadResourceScript, keyList, *argList.toTypedArray())
+        if (result < 0) {
+            throw RuntimeException("Create unread resource error: $result")
+        }
+    }
+
+    override fun batchCreateUnreadResource(store: String, path: String, vararg resources: String) {
+        // 1. add resource to node set
+        // 2. maintain unread count from bottom to top
+        // do this by lua script
+
+        // store key
+        val storeKey = redisKeyManager.getStoreKey(store)
+
+        val keyList = listOf(storeKey, redisKeyManager.getNodeKey(store, path))
+
+        val argList = mutableListOf<String>()
+
+        var reducePath = path
+        do {
+            argList.add(reducePath)
+            reducePath = reducePath.substringBeforeLast("/")
+        } while (reducePath.isNotEmpty())
+        argList.add("/")
+
+        // insert path args count to zero index item
+        argList.add(0, argList.size.toString())
+
+        // then append all resources after
+        argList.addAll(resources)
+
+        val result =
+            stringRedisTemplate.execute(batchCreateUnreadResourceScript, keyList, *argList.toTypedArray())
         if (result < 0) {
             throw RuntimeException("Create unread resource error: $result")
         }
@@ -115,5 +155,18 @@ class ResourceServiceImpl : ResourceService {
         val storeKey = redisKeyManager.getStoreKey(store)
 
         return hashOperations.get(storeKey, path)?.toIntOrNull() ?: 0
+    }
+
+    override fun batchCountUnreadResource(store: String, vararg paths: String): Map<String, Int> {
+        val storeKey = redisKeyManager.getStoreKey(store)
+        val hashKeyList = paths.toList()
+        val hashValueList = hashOperations.multiGet(storeKey, hashKeyList)
+
+        val result = mutableMapOf<String, Int>()
+        hashKeyList.forEachIndexed { index, key ->
+            result[key] = hashValueList[index].toIntOrNull() ?: 0
+        }
+
+        return result
     }
 }

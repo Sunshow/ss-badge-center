@@ -1,9 +1,6 @@
 package net.sunshow.badge.gateway.controller
 
-import net.sunshow.badge.domain.usecase.resource.CountUnreadResourceUseCase
-import net.sunshow.badge.domain.usecase.resource.CreateUnreadResourceUseCase
-import net.sunshow.badge.domain.usecase.resource.DeleteAllUnreadResourceUseCase
-import net.sunshow.badge.domain.usecase.resource.DeleteUnreadResourceUseCase
+import net.sunshow.badge.domain.usecase.resource.*
 import net.sunshow.badge.domain.usecase.store.CreateStoreUseCase
 import net.sunshow.badge.domain.usecase.store.DeleteStoreUseCase
 import net.sunshow.badge.domain.usecase.store.ListStoreUseCase
@@ -20,7 +17,9 @@ class EntryController(
     private val deleteStoreUseCase: DeleteStoreUseCase,
     private val listStoreUseCase: ListStoreUseCase,
     private val createUnreadResourceUseCase: CreateUnreadResourceUseCase,
+    private val batchCreateUnreadResourceUseCase: BatchCreateUnreadResourceUseCase,
     private val countUnreadResourceUseCase: CountUnreadResourceUseCase,
+    private val batchCountUnreadResourceUseCase: BatchCountUnreadResourceUseCase,
     private val deleteUnreadResourceUseCase: DeleteUnreadResourceUseCase,
     private val deleteAllUnreadResourceUseCase: DeleteAllUnreadResourceUseCase,
 ) {
@@ -58,13 +57,29 @@ class EntryController(
     ) {
         val uri = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
         val path = uri.substringAfter("/$store")
-        createUnreadResourceUseCase.execute(
-            CreateUnreadResourceUseCase.InputData(
-                store = store,
-                path = path,
-                resource = body.resource,
+        if (body.resource == null && body.resources == null) {
+            throw RuntimeException("No resource was supplied.")
+        }
+        if (body.resource != null && body.resources != null) {
+            throw RuntimeException("Cannot both supply resource and resources.")
+        }
+        if (body.resource != null) {
+            createUnreadResourceUseCase.execute(
+                CreateUnreadResourceUseCase.InputData(
+                    store = store,
+                    path = path,
+                    resource = body.resource!!,
+                )
             )
-        )
+        } else {
+            batchCreateUnreadResourceUseCase.execute(
+                BatchCreateUnreadResourceUseCase.InputData(
+                    store = store,
+                    path = path,
+                    resources = body.resources!!,
+                )
+            )
+        }
     }
 
     @GetMapping("/{store}/**")
@@ -75,6 +90,19 @@ class EntryController(
             CountUnreadResourceUseCase.InputData(
                 store = store,
                 path = path,
+            )
+        )
+    }
+
+    @GetMapping("/{store}")
+    fun batchGetUnreadResource(
+        @PathVariable store: String,
+        @RequestParam paths: Array<String>
+    ): Any {
+        return batchCountUnreadResourceUseCase.execute(
+            BatchCountUnreadResourceUseCase.InputData(
+                store = store,
+                paths = paths,
             )
         )
     }
