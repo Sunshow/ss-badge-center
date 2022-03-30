@@ -34,13 +34,21 @@ class ResourceServiceImpl : ResourceService {
         RedisScript.of(batchCreateUnreadResourceScriptFile, Long::class.java)
     }
 
-
     @Value("classpath:scripts/delete_unread_resource.lua")
     private lateinit var deleteUnreadResourceScriptFile: Resource
 
     private val deleteUnreadResourceScript: RedisScript<Long> by lazy {
         RedisScript.of(deleteUnreadResourceScriptFile, Long::class.java)
     }
+
+
+    @Value("classpath:scripts/delete_unread_resource_batch.lua")
+    private lateinit var batchDeleteUnreadResourceScriptFile: Resource
+
+    private val batchDeleteUnreadResourceScript: RedisScript<Long> by lazy {
+        RedisScript.of(batchDeleteUnreadResourceScriptFile, Long::class.java)
+    }
+
 
     @Value("classpath:scripts/delete_all_unread_resource.lua")
     private lateinit var deleteAllUnreadResourceScriptFile: Resource
@@ -127,6 +135,31 @@ class ResourceServiceImpl : ResourceService {
         argList.add("/")
 
         val result = stringRedisTemplate.execute(deleteUnreadResourceScript, keyList, *argList.toTypedArray())
+        if (result < 0) {
+            throw RuntimeException("Delete unread resource error: $result")
+        }
+    }
+
+    override fun batchDeleteUnreadResource(store: String, path: String, vararg resources: String) {
+        val storeKey = redisKeyManager.getStoreKey(store)
+
+        val keyList = listOf(storeKey, redisKeyManager.getNodeKey(store, path))
+
+        val argList = mutableListOf<String>()
+        var reducePath = path
+        do {
+            argList.add(reducePath)
+            reducePath = reducePath.substringBeforeLast("/")
+        } while (reducePath.isNotEmpty())
+        argList.add("/")
+
+        // insert path args count to zero index item
+        argList.add(0, argList.size.toString())
+
+        // then append all resources after
+        argList.addAll(resources)
+
+        val result = stringRedisTemplate.execute(batchDeleteUnreadResourceScript, keyList, *argList.toTypedArray())
         if (result < 0) {
             throw RuntimeException("Delete unread resource error: $result")
         }

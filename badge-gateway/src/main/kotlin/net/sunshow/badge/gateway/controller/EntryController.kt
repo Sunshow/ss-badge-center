@@ -21,6 +21,7 @@ class EntryController(
     private val countUnreadResourceUseCase: CountUnreadResourceUseCase,
     private val batchCountUnreadResourceUseCase: BatchCountUnreadResourceUseCase,
     private val deleteUnreadResourceUseCase: DeleteUnreadResourceUseCase,
+    private val batchDeleteUnreadResourceUseCase: BatchDeleteUnreadResourceUseCase,
     private val deleteAllUnreadResourceUseCase: DeleteAllUnreadResourceUseCase,
 ) {
 
@@ -116,13 +117,29 @@ class EntryController(
         val uri = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
         val path = uri.substringAfter("/$store")
         if (body != null) {
-            deleteUnreadResourceUseCase.execute(
-                DeleteUnreadResourceUseCase.InputData(
-                    store = store,
-                    path = path,
-                    resource = body.resource,
+            if (body.resource == null && body.resources == null) {
+                throw RuntimeException("No resource was supplied.")
+            }
+            if (body.resource != null && body.resources != null) {
+                throw RuntimeException("Cannot both supply resource and resources.")
+            }
+            if (body.resource != null) {
+                deleteUnreadResourceUseCase.execute(
+                    DeleteUnreadResourceUseCase.InputData(
+                        store = store,
+                        path = path,
+                        resource = body.resource!!,
+                    )
                 )
-            )
+            } else {
+                batchDeleteUnreadResourceUseCase.execute(
+                    BatchDeleteUnreadResourceUseCase.InputData(
+                        store = store,
+                        path = path,
+                        resources = body.resources!!,
+                    )
+                )
+            }
         } else {
             deleteAllUnreadResourceUseCase.execute(
                 DeleteAllUnreadResourceUseCase.InputData(
