@@ -197,7 +197,7 @@ class ResourceServiceImpl : ResourceService {
 
         val result = mutableMapOf<String, Int>()
         hashKeyList.forEachIndexed { index, key ->
-            result[key] = hashValueList[index].toIntOrNull() ?: 0
+            result[key] = hashValueList[index]?.toIntOrNull() ?: 0
         }
 
         return result
