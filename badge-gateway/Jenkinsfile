@@ -1,0 +1,130 @@
+pipeline {
+    agent any
+
+    environment {
+        // Docker Hub 配置
+        DOCKER_REGISTRY = "docker.io"
+        DOCKER_REPOSITORY = 'sunshow/ss-badge-center'
+        DOCKER_TAG = "${env.DOCKER_TAG ?: 'latest'}"
+
+        // Jenkins 凭据 ID (Docker Hub)
+        DOCKER_CREDENTIALS_ID = "dockerhub-sunshow"
+
+        // Dockerfile 路径
+        DOCKERFILE_PATH = 'Dockerfile'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    echo "=========================================="
+                    echo "Starting SS Badge Center Docker Build Pipeline"
+                    echo "Docker Registry: Docker Hub"
+                    echo "Docker Image: ${env.DOCKER_REPOSITORY}:${env.DOCKER_TAG}"
+                    echo "Dockerfile: ${env.DOCKERFILE_PATH}"
+                    echo "=========================================="
+                }
+            }
+        }
+
+        stage('Build JAR') {
+            steps {
+                script {
+                    echo "Building bootJar with Gradle..."
+                    sh './gradlew :badge-gateway:bootJar'
+                    echo "JAR build completed"
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                dir('badge-gateway') {
+                    script {
+                        def fullImageName = "${env.DOCKER_REPOSITORY}:${env.DOCKER_TAG}"
+
+                        def gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def dateTag = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
+                        def versionTag = "${gitCommit}-${dateTag}"
+                        def versionImageName = "${env.DOCKER_REPOSITORY}:${versionTag}"
+
+                        echo "Building and pushing Docker image: ${fullImageName}"
+                        echo "Version tag: ${versionImageName}"
+
+                        sh 'cp build/libs/*.jar .'
+                        def jarFile = sh(script: 'ls *.jar | head -1', returnStdout: true).trim()
+
+                        def buildAndPush = {
+                            sh """
+                                docker buildx build \
+                                  --push \
+                                  --platform linux/amd64 \
+                                  --build-arg JAR_FILE=${jarFile} \
+                                  -f ${env.DOCKERFILE_PATH} \
+                                  -t ${fullImageName} \
+                                  -t ${versionImageName} \
+                                  .
+                            """
+                            echo "Docker image built and pushed successfully: ${fullImageName}, ${versionImageName}"
+                        }
+
+                        if (env.DOCKER_CREDENTIALS_ID?.trim()) {
+                            echo "Using Docker Hub credentials"
+                            withCredentials([usernamePassword(
+                                    credentialsId: env.DOCKER_CREDENTIALS_ID,
+                                    usernameVariable: 'DOCKER_USERNAME',
+                                    passwordVariable: 'DOCKER_PASSWORD'
+                            )]) {
+                                sh """
+                                    echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                                """
+                                buildAndPush()
+                            }
+                        } else {
+                            echo "Using anonymous Docker registry access"
+                            buildAndPush()
+                        }
+
+                        sh 'rm -f *.jar'
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo "Cleaning up dangling images only..."
+                    sh """
+                        docker image prune -f || true
+                    """
+                    echo "Cleanup completed"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                if (env.DOCKER_CREDENTIALS_ID?.trim()) {
+                    sh 'docker logout || true'
+                }
+            }
+        }
+
+        success {
+            echo "=========================================="
+            echo "Pipeline executed successfully!"
+            echo "Docker image: ${env.DOCKER_REPOSITORY}:${env.DOCKER_TAG}"
+            echo "=========================================="
+        }
+
+        failure {
+            echo "=========================================="
+            echo "Pipeline failed! Please check the console output for details."
+            echo "=========================================="
+        }
+    }
+}
